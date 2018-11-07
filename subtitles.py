@@ -63,8 +63,8 @@ with open("Anki.csv", "w") as f:
             continue
         if line_count == 2:
             if not line.strip():
-                audio = add_to_name + start.replace(":", "_") + ".mp3"
-                picture = add_to_name + start.replace(":", "_")  + ".jpg"
+                audio = add_to_name + start.replace(":", "_") + "_" + str(position) + ".mp3"
+                picture = add_to_name + start.replace(":", "_") + "_" + str(position)  + ".jpg"
                 create_video(video, start, end, audio)
                 create_picture(video, start, picture)
                 write_line_to_anki(filename_output, audio, picture, position, current_line)
