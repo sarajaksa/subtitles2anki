@@ -12,67 +12,90 @@ parser.add_argument("--season", help="The season of series - to be added to Anki
 parser.add_argument("--episode", help="The episode of the season of series - to be added to Anki as field")
 args = parser.parse_args()
 
-if not args.prefix:
-    args.prefix = ""
-if not args.name:
-    args.name == ""
-if not args.season:
-    args.season = ""
-if not args.episode:
-    args.episode = ""
-if not args.output:
-    args.output = "Anki.csv"
+class AnkizationSubtitles():
 
-def create_video(video, start, end, name):
-    subprocess.call(["ffmpeg", "-ss", start, "-to", end, "-i", video, "-b:a", "320K", "-vn", name], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+    def __init__(self, args):
+        self.args = args
+        if not self.args.prefix:
+           self. args.prefix = ""
+        if not args.name:
+            self.args.name == ""
+        if not args.season:
+            self.args.season = ""
+        if not args.episode:
+            self.args.episode = ""
+        if not args.output:
+            self.args.output = "Anki.csv"
 
-def create_picture(video, start, name):
-    subprocess.call(["ffmpeg", "-ss", start, "-i", video, "-f", "image2", "-vcodec", "mjpeg", "-vframes", "1", name], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+        self.lines = self.open_subtitles(self.args.sub)
+        self.format_subtitles_to_flashcards(self.lines, self.args.prefix, self.args.output)
 
-def find_start_and_end_times(times):
-    start, end = line.strip().split("-->")
-    start = start.strip().split(",")[0]
-    end = end.strip().split(",")[0]
-    if end[-1] == str(9):
-        end = end[:-2] + str(int(end[-2]) + 1) + str(0)
-    else:
-        end = end[:-1] + str(int(end[-1]) + 1)
-    return start, end
+    def create_video(self, video, start, end, name):
+        subprocess.call(["ffmpeg", "-ss", start, "-to", end, "-i", video, "-b:a", "320K", "-vn", name], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
 
-def write_line_to_anki(filename, audio, picture, position, line):
-    with open(filename, "a") as f:
-        f.write(current_line + "\t[sound:" + audio + "]\t<img src='" + picture)
-        if args.name:
-            f.write("\t" + args.name)
-        if args.season:
-            f.write("\t" + args.season)
-        if args.episode:
-            f.write("\t" + args.episode)
-        f.write("\n")
+    def create_picture(self, video, start, name):
+        subprocess.call(["ffmpeg", "-ss", start, "-i", video, "-f", "image2", "-vcodec", "mjpeg", "-vframes", "1", name], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
 
-with open(args.sub) as f:
-    lines = f.readlines()
-
-line_count = 0
-for line in lines:
-    if line_count == 0:
-        position = int(line.strip().replace("\ufeff", ""))
-        line_count = line_count + 1
-        continue
-    if line_count == 1:
-        start, end = find_start_and_end_times(line)
-        line_count = line_count + 1
-        current_line = ""
-        continue
-    if line_count == 2:
-        if not line.strip():
-            audio = args.prefix + start.replace(":", "_") + "_" + str(position) + ".mp3"
-            picture = args.prefix + start.replace(":", "_") + "_" + str(position)  + ".jpg"
-            create_video(args.video, start, end, audio)
-            create_picture(args.video, start, picture)
-            write_line_to_anki(args.output, audio, picture, position, current_line)
-            line_count = 0
-            continue
+    def find_start_and_end_times(self, times):
+        start, end = times.strip().split("-->")
+        start = start.strip().split(",")[0]
+        end = end.strip().split(",")[0]
+        if end[-1] == str(9):
+            end = end[:-2] + str(int(end[-2]) + 1) + str(0)
         else:
-            current_line = current_line + " " + line.strip()
-            current_line = current_line.strip()
+            end = end[:-1] + str(int(end[-1]) + 1)
+        return start, end
+
+    def write_line_to_anki(self, filename, audio, picture, position, line):
+        with open(filename, "a") as f:
+            f.write(line + "\t[sound:" + audio + "]\t<img src='" + picture + "'>")
+            if args.name:
+                f.write("\t" + args.name)
+            if args.season:
+                f.write("\t" + args.season)
+            if args.episode:
+                f.write("\t" + args.episode)
+            f.write("\n")
+
+    def open_subtitles(self, subtitles):
+        with open(subtitles) as f:
+            lines = f.readlines()
+        return lines
+
+    def get_line_position(self, line):
+        return int(line.strip().replace("\ufeff", ""))
+
+    def create_current_line(self, line_so_far, line):
+        current_line = line_so_far + " " + line.strip()
+        return current_line.strip()
+
+    def create_anki_flashcard(self, prefix, start, end, position, line, output_file):
+        audio = prefix + start.replace(":", "_") + "_" + str(position) + ".mp3"
+        picture = prefix + start.replace(":", "_") + "_" + str(position)  + ".jpg"
+        self.create_video(args.video, start, end, audio)
+        self.create_picture(args.video, start, picture)
+        self.write_line_to_anki(output_file, audio, picture, position, line)
+
+    def format_subtitles_to_flashcards(self, lines, prefix, output):
+        line_count = 0
+        for line in lines:
+            if line_count == 0:
+                position = self.get_line_position(line)
+                line_count = line_count + 1
+                continue
+            if line_count == 1:
+                start, end = self.find_start_and_end_times(line)
+                line_count = line_count + 1
+                current_line = ""
+                continue
+            if line_count == 2:
+                if not line.strip():
+                    self.create_anki_flashcard(prefix, start, end, position, current_line, output)
+                    print(position)
+                    line_count = 0
+                    continue
+                else:
+                    current_line = self.create_current_line(current_line, line)
+
+if __name__ == "__main__":
+    AnkizationSubtitles(args)
