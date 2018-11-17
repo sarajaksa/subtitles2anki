@@ -3,23 +3,41 @@ import subprocess
 import argparse
 import os
 
-parser = argparse.ArgumentParser(description="Command line app to change the video and subtitles into csv file to import in Anki")
+parser = argparse.ArgumentParser(
+    description="Command line app to change the video and subtitles into csv file to import in Anki"
+)
 parser.add_argument("-v", "--video", help="The video file")
 parser.add_argument("-s", "--sub", help="The subtitles file")
-parser.add_argument("-o", "--output", help="The name of output file - the one to be imported to Anki")
-parser.add_argument("--prefix", help="The prefix to be used when generating the names of pictures and sound")
-parser.add_argument("--name", help="The name of video to be added as field - like name of series or movie")
-parser.add_argument("--season", help="The season of series - to be added to Anki as field")
-parser.add_argument("--episode", help="The episode of the season of series - to be added to Anki as field")
-parser.add_argument("--padding", help="How much padding to add on the begging and the end of the audio in miliseconds")
+parser.add_argument(
+    "-o", "--output", help="The name of output file - the one to be imported to Anki"
+)
+parser.add_argument(
+    "--prefix",
+    help="The prefix to be used when generating the names of pictures and sound",
+)
+parser.add_argument(
+    "--name",
+    help="The name of video to be added as field - like name of series or movie",
+)
+parser.add_argument(
+    "--season", help="The season of series - to be added to Anki as field"
+)
+parser.add_argument(
+    "--episode",
+    help="The episode of the season of series - to be added to Anki as field",
+)
+parser.add_argument(
+    "--padding",
+    help="How much padding to add on the begging and the end of the audio in miliseconds",
+)
 args = parser.parse_args()
 
-class AnkizationSubtitles():
 
+class AnkizationSubtitles:
     def __init__(self, args):
         self.args = args
         if not self.args.prefix:
-           self. args.prefix = ""
+            self.args.prefix = ""
         if not args.name:
             self.args.name == ""
         if not args.season:
@@ -36,13 +54,48 @@ class AnkizationSubtitles():
         self.add_padding_end = partial(self.add_padding_to_times, direction=1)
 
         self.lines = self.open_subtitles(self.args.sub)
-        self.format_subtitles_to_flashcards(self.lines, self.args.prefix, self.args.output, self.args.padding)
+        self.format_subtitles_to_flashcards(
+            self.lines, self.args.prefix, self.args.output, self.args.padding
+        )
 
     def create_video(self, video, start, end, name):
-        subprocess.call(["ffmpeg", "-ss", start, "-to", end, "-i", video, "-b:a", "320K", "-vn", name], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-ss",
+                start,
+                "-to",
+                end,
+                "-i",
+                video,
+                "-b:a",
+                "320K",
+                "-vn",
+                name,
+            ],
+            stdout=open(os.devnull, "w"),
+            stderr=subprocess.STDOUT,
+        )
 
     def create_picture(self, video, start, name):
-        subprocess.call(["ffmpeg", "-ss", start, "-i", video, "-f", "image2", "-vcodec", "mjpeg", "-vframes", "1", name], stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT)
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-ss",
+                start,
+                "-i",
+                video,
+                "-f",
+                "image2",
+                "-vcodec",
+                "mjpeg",
+                "-vframes",
+                "1",
+                name,
+            ],
+            stdout=open(os.devnull, "w"),
+            stderr=subprocess.STDOUT,
+        )
 
     def find_start_and_end_times(self, times, padding):
         start, end = times.strip().split("-->")
@@ -53,7 +106,7 @@ class AnkizationSubtitles():
         return start, end
 
     def add_padding_to_times(self, time, padding, direction):
-        time_units_max = {0: 1000, 1:60, 2:60, 3:24}
+        time_units_max = {0: 1000, 1: 60, 2: 60, 3: 24}
         time_units = time.split(":")
         time_units = time_units[:-1] + time_units[-1].split(".")
         time_units = [int(i) for i in time_units][::-1]
@@ -94,7 +147,7 @@ class AnkizationSubtitles():
 
     def create_anki_flashcard(self, prefix, start, end, position, line, output_file):
         audio = prefix + start.replace(":", "_") + "_" + str(position) + ".mp3"
-        picture = prefix + start.replace(":", "_") + "_" + str(position)  + ".jpg"
+        picture = prefix + start.replace(":", "_") + "_" + str(position) + ".jpg"
         self.create_video(args.video, start, end, audio)
         self.create_picture(args.video, start, picture)
         self.write_line_to_anki(output_file, audio, picture, position, line)
@@ -113,12 +166,15 @@ class AnkizationSubtitles():
                 continue
             if line_count == 2:
                 if not line.strip():
-                    self.create_anki_flashcard(prefix, start, end, position, current_line, output)
+                    self.create_anki_flashcard(
+                        prefix, start, end, position, current_line, output
+                    )
                     print(position)
                     line_count = 0
                     continue
                 else:
                     current_line = self.create_current_line(current_line, line)
+
 
 if __name__ == "__main__":
     AnkizationSubtitles(args)
