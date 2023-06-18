@@ -30,6 +30,10 @@ parser.add_argument(
     "--padding",
     help="How much padding to add on the begging and the end of the audio in miliseconds",
 )
+parser.add_argument(
+    "--folder",
+    help="In which folder are the files saved - requires absolute filepath or relative to running script",
+)
 args = parser.parse_args()
 
 
@@ -48,6 +52,8 @@ class AnkizationSubtitles:
             self.args.output = "Anki.csv"
         if not args.padding:
             self.args.padding = 0
+        if not args.folder:
+            self.args.folder = ""
         self.args.padding = int(self.args.padding)
 
         self.add_padding_start = partial(self.add_padding_to_times, direction=-1)
@@ -59,6 +65,7 @@ class AnkizationSubtitles:
         )
 
     def create_video(self, video, start, end, name):
+        filename = os.path.join(self.args.folder, name) if self.args.folder else name
         subprocess.call(
             [
                 "ffmpeg",
@@ -71,13 +78,14 @@ class AnkizationSubtitles:
                 "-b:a",
                 "320K",
                 "-vn",
-                name,
+                filename,
             ],
             stdout=open(os.devnull, "w"),
             stderr=subprocess.STDOUT,
         )
 
     def create_picture(self, video, start, name):
+        filename = os.path.join(self.args.folder, name) if self.args.folder else name
         subprocess.call(
             [
                 "ffmpeg",
@@ -91,7 +99,7 @@ class AnkizationSubtitles:
                 "mjpeg",
                 "-vframes",
                 "1",
-                name,
+                filename,
             ],
             stdout=open(os.devnull, "w"),
             stderr=subprocess.STDOUT,
@@ -123,6 +131,7 @@ class AnkizationSubtitles:
         return "{}:{}:{}.{}".format(hours, minutes, seconds, miliseconds)
 
     def write_line_to_anki(self, filename, audio, picture, position, line):
+        filename = os.path.join(self.args.folder, filename) if self.args.folder else filename
         with open(filename, "a") as f:
             f.write(line + "\t[sound:" + audio + "]\t<img src='" + picture + "'>")
             if args.name:
