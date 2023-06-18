@@ -17,6 +17,10 @@ python3 --version
 
 If you see something like `Python 3.11.4` (the first 3 is important, the latter numbers could be anything), then you have Python installed. If not, follow the guides on the official Python site: https://wiki.python.org/moin/BeginnersGuide/Download
 
+### Installing ffmpeg
+
+Install ffmpeg with the package manage of your choice. This is most likely going to be brew on Mac and a variation of apt-get / pacman / ...
+
 ### Installing the Program
 
 This program is just a one file script and therefore does not require the installation. You just need to download it to your computer.
@@ -35,12 +39,12 @@ The results would be the CSV file that can be imported into ANKI and the picture
 
 The program supports additional parameters. They are listed below. They could also be accessed with the --help flag.
 
--v VIDEO, --video VIDEO     The video file
--s SUB, --sub SUB           The subtitles file
--o OUTPUT, --output OUTPUT. The name of output file - the one to be imported to Anki
---prefix PREFIX       The prefix to be used when generating the names of pictures and sound
---name NAME           The name of video to be added as field - like name of series or movie
---season SEASON       The season of series - to be added to Anki as field
---episode EPISODE     The episode of the season of series - to be added to
---padding PADDING     How much padding to add on the begging and the end of the audio in miliseconds
---folder FOLDER       In which folder are the files saved - requires absolute filepath or relative to running script
+> -v VIDEO, --video VIDEO     The video file
+> -s SUB, --sub SUB           The subtitles file
+> -o OUTPUT, --output OUTPUT. The name of output file - the one to be imported to Anki
+> --prefix PREFIX       The prefix to be used when generating the names of pictures and sound
+> --name NAME           The name of video to be added as field - like name of series or movie
+> --season SEASON       The season of series - to be added to Anki as field
+> --episode EPISODE     The episode of the season of series - to be added to
+> --padding PADDING     How much padding to add on the begging and the end of the audio in miliseconds
+> --folder FOLDER       In which folder are the files saved - requires absolute filepath or relative to running script
